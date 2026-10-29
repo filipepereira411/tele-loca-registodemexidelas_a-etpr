@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <meta charset="UTF-8">
+    <title>Correio Técnico Filipe: Sent &amp; Receive Console</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #0b0b0f; color: #d1d1d6; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Cabeçalho do Ecossistema */
+        header { background: #14141f; padding: 15px 25px; border-bottom: 1px solid #232330; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 18px; color: #ffffff; font-weight: 500; }
+        header .user-badge { font-size: 13px; color: #0078d4; font-family: monospace; font-weight: bold; }
+        
+        /* Barra de Navegação Superior (Tabs) */
+        nav { background: #161622; display: flex; border-bottom: 1px solid #232330; padding: 0 10px; }
+        .tab-btn { padding: 12px 24px; background: transparent; border: none; border-bottom: 3px solid transparent; color: #8e8e93; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .tab-btn:hover { color: #ffffff; }
+        .tab-btn.active { color: #0078d4; border-bottom-color: #0078d4; }
+        
+        /* Área Principal de Exibição */
+        main { flex: 1; padding: 25px; background: #07070a; overflow-y: auto; display: flex; flex-direction: column; }
+        .view { display: none; }
+        .view.active { display: flex; flex-direction: column; gap: 15px; }
+        
+        .card { background: #14141f; padding: 20px; border-radius: 8px; border: 1px solid #232330; }
+        .card h2 { font-size: 16px; color: #ffffff; margin-bottom: 10px; font-weight: 500; }
+        .card p { color: #8e8e93; font-size: 13px; line-height: 1.5; margin-bottom: 15px; }
+        
+        /* Botões e Interfaces */
+        .btn-action { padding: 10px 20px; background: #a80000; color: white; border: none; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-action:hover { background: #e00000; box-shadow: 0 0 12px rgba(224, 0, 0, 0.3); }
+        
+        /* Consola de Logs Operacionais */
+        .console-log { background: #040406; border: 1px solid #232330; border-radius: 6px; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; color: #00ff66; line-height: 1.6; min-height: 200px; max-height: 350px; overflow-y: auto; white-space: pre-wrap; }
+        .blink { animation: blinker 1.5s linear infinite; color: #ffaa00; display: inline; }
+        @keyframes blinker { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho de Identificação Técnica -->
+    <header>
+        <h1>Consola Integrada MailFilipe</h1>
+        <div class="user-badge">@filipepereira411 // IPC_SYSTEM</div>
+    </header>
+
+    <!-- Menu de Abas Alternáveis -->
+    <nav>
+        <button id="tab-sent" class="tab-btn active" onclick="switchView('sent')">📤 Módulo: sent.html (Emissor)</button>
+        <button id="tab-receive" class="tab-btn" onclick="switchView('receive')">📥 Módulo: receive.html (Recetor)</button>
+    </nav>
+
+    <main>
+        <!-- VISTA EMISSORA (sent.html) -->
+        <div id="view-sent" class="view active">
+            <div class="card">
+                <h2>Disparo de Pulso de Redefinição Operacional</h2>
+                <p>Ao emitir a ordem a partir deste painel, um sinalizador binário local será gravado em disco. O módulo recetor em escuta paralela irá capturar este pulso para executar as limpezas de buffers e manutenção técnica automatizada das pastas.</p>
+                <button class="btn-action" onclick="enviarSinalRedefinicao()">DISPARAR COMANDO DE PURGA</button>
+            </div>
+            <div id="log-sent" class="console-log" style="color: #00bcf2; min-height: 100px;">Aguardando acionamento da diretiva emissora...</div>
+        </div>
+
+        <!-- VISTA RECETORA (receive.html) -->
+        <div id="view-receive" class="view">
+            <div class="card">
+                <h2>Monitorização e Escuta Ativa de Sinais de Disco</h2>
+                <p>Este terminal corre uma rotina contínua de background (polling) configurada para escanear a existência de diretivas de limpeza emitidas pelo ecossistema.</p>
+            </div>
+            <div id="log-receive" class="console-log">
+[SISTEMA] Escuta assíncrona inicializada.
+<div class="blink">[ESCUTA] Aguardando sinal gerado pela aba 'sent.html'...</div></div>
+        </div>
+    </main>
+
+    <script>
+        // Forçar tamanho da janela da aplicação
+        window.resizeTo(800, 600);
+
+        // Sistema de navegação SPA limpo de abas
+        function switchView(targetId) {
+            document.getElementById('view-sent').className = 'view';
+            document.getElementById('view-receive').className = 'view';
+            document.getElementById('tab-sent').className = 'tab-btn';
+            document.getElementById('tab-receive').className = 'tab-btn';
+            
+            document.getElementById('view-' + targetId).className = 'view active';
+            document.getElementById('tab-' + targetId).className = 'tab-btn active';
+        }
+
+        // FUNÇÃO SENT: Grava o pulso em disco utilizando o FileSystemObject
+        function enviarSinalRedefinicao() {
+            var logBox = document.getElementById("log-sent");
+            var dataHora = new Date().toLocaleTimeString();
+            logBox.innerHTML = "[" + dataHora + "] A processar pulso binário local...\n";
+            
+            try {
+                var fso = new ActiveXObject("Scripting.FileSystemObject");
+                var stream = fso.OpenTextFile("sinal_reset.tmp", 2, true);
+                stream.WriteLine("TRIGGER_RESET");
+                stream.Close();
+                
+                logBox.innerHTML += "[" + dataHora + "] [SUCESSO] Diretiva gravada em disco. Alterne para a aba do Recetor para validar.";
+            } catch (e) {
+                logBox.innerHTML += "[" + dataHora + "] [ERRO] Falha de escrita no armazenamento: " + e.message;
+            }
+        }
+
+        // FUNÇÃO RECEIVE: Escuta em background (Loop executado a cada 2.5 segundos)
+        var loopEscuta = setInterval(escanearCanalComunicacao, 2500);
+
+        function adicionarLogRecetor(texto) {
+            var consola = document.getElementById("log-receive");
+            var dataHora = new Date().toLocaleTimeString();
+            consola.innerHTML += "\n[" + dataHora + "] " + texto;
+            consola.scrollTop = consola.scrollHeight; // Scroll automático para o fundo
+        }
+
+        function escanearCanalComunicacao() {
+            try {
+                var fso = new ActiveXObject("Scripting.FileSystemObject");
+                var ficheiroSinal = "sinal_reset.tmp";
+                
+                if (fso.FileExists(ficheiroSinal)) {
+                    adicionarLogRecetor("[SINAL DETETADO] Ordem recebida! A iniciar rotina de manutenção...");
+                    
+                    // 1. Consome e limpa o token de sinalização
+                    fso.DeleteFile(ficheiroSinal, true);
+                    adicionarLogRecetor("[LOG] Token 'sinal_reset.tmp' consumido com sucesso.");
+                    
+                    // 2. Limpa o log de auditoria técnica geral se ele existir na pasta
+                    var ficheiroLogGeral = "site_auditoria_log.txt";
+                    if (fso.FileExists(ficheiroLogGeral)) {
+                        fso.DeleteFile(ficheiroLogGeral, true);
+                        adicionarLogRecetor("[LIMPEZA] Ficheiro 'site_auditoria_log.txt' limpo e redefinido.");
+                    }
+                    
+                    adicionarLogRecetor("[CONCLUÍDO] Estado das pastas limpo com sucesso.\n---------------------------------------\n[ESCUTA] Retornando ao canal de escuta de IO...");
+                }
+            } catch (e) {
+                // Silencia colisões de leitura e escrita simultâneas no ficheiro de IO
+            }
+        }
+    </script>
+</body>
+</html>
