@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14141f">
+<title>Consola de Correio: @filipepereira411</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;height:100%}
+body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;background:#0b0b0f;color:#d1d1d6;min-height:100%;height:100vh;height:100dvh;display:flex;justify-content:center;align-items:center;overflow:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input{font:inherit;touch-action:manipulation}
+:focus-visible{outline:2px solid #00bcf2;outline-offset:2px}
+
+/* Autenticação */
+.auth-container{max-width:400px;width:calc(100% - 32px);max-height:100%;overflow-y:auto;background:#14141f;border:1px solid #232330;padding:35px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.auth-header{text-align:center;margin-bottom:25px}
+.auth-header h2{font-size:20px;color:#fff;margin-bottom:5px}
+.auth-header p{font-size:13px;color:#8e8e93}
+.auth-tabs{display:flex;margin-bottom:20px;border-bottom:1px solid #232330}
+.auth-tab-btn{flex:1;min-height:44px;padding:10px;background:transparent;border:none;border-bottom:2px solid transparent;color:#8e8e93;cursor:pointer;font-size:14px;font-weight:600}
+.auth-tab-btn.active{color:#0a8ae6;border-bottom-color:#0a8ae6}
+.form-group{margin-bottom:18px;display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;color:#a0a0aa;text-transform:uppercase;letter-spacing:.5px}
+.form-input{background:#1c1c24;border:1px solid #2d2d3d;color:#fff;padding:12px;min-height:44px;border-radius:6px;font-size:16px;width:100%}
+.form-input:focus{border-color:#0a8ae6;outline:none}
+.auth-btn{width:100%;min-height:44px;padding:12px;background:#0078d4;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer}
+.auth-btn:hover{background:#005a9e}
+.auth-message{font-size:13px;text-align:center;margin-top:12px;display:none}
+
+/* Aplicação */
+.app-container{width:100%;height:100%;display:none;flex-direction:column;background:#07070a}
+header{background:#14141f;padding:12px 20px;border-bottom:1px solid #232330;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+header h1{font-size:18px;color:#fff;font-weight:500}
+.header-actions{display:flex;align-items:center;gap:12px}
+.status-badge{font-size:12px;background:#111116;border:1px solid #232330;color:#00bcf2;padding:6px 12px;border-radius:6px;font-family:Consolas,Menlo,monospace}
+.logout-btn{min-height:36px;padding:6px 14px;background:#a80000;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer}
+.logout-btn:hover{background:#820000}
+
+.workspace{flex:1;display:flex;overflow:hidden;min-height:0}
+.email-list{width:350px;flex-shrink:0;background:#111116;border-right:1px solid #232330;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.list-header{padding:15px;border-bottom:1px solid #232330;font-size:12px;text-transform:uppercase;color:#8e8e93;letter-spacing:1px}
+.email-item{display:block;width:100%;text-align:left;padding:15px 30px 15px 15px;border:none;border-bottom:1px solid #1c1c26;color:inherit;cursor:pointer;background:#111116;position:relative}
+.email-item:hover{background:#181822}
+.email-item.active{background:#1c1c2b;box-shadow:inset 4px 0 0 #0078d4}
+.email-item.unread::after{content:'';position:absolute;right:15px;top:22px;width:8px;height:8px;background:#0a8ae6;border-radius:50%}
+.email-item .time{font-size:11px;color:#7a7b88;float:right}
+.email-item .sender{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
+.email-item .subject{font-size:13px;color:#00bcf2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.email-item .preview{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.email-viewer{flex:1;min-width:0;background:#07070a;padding:25px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.view-placeholder{margin:auto;text-align:center;color:#8e8e93;font-size:14px}
+.back-btn{display:none;align-self:flex-start;min-height:44px;margin-bottom:12px;padding:8px 14px;background:#1c1c24;color:#fff;border:1px solid #2d2d3d;border-radius:6px;font-size:14px;cursor:pointer}
+.mail-wrapper{background:#fff;color:#232433;border-radius:8px;overflow:hidden;max-width:650px;width:100%;margin:0 auto;box-shadow:0 4px 15px rgba(0,0,0,.4);display:none}
+.mail-header{background:#14141f;padding:22px 25px;border-bottom:3px solid #0078d4;color:#fff}
+.mail-header h2{font-size:18px;font-weight:500;overflow-wrap:anywhere}
+.mail-info{padding:15px 25px;background:#f8f8fa;border-bottom:1px solid #e1e1e6;font-size:13px;color:#51525d;overflow-wrap:anywhere}
+.mail-body{padding:28px 25px;font-size:15px;line-height:1.6;color:#333;overflow-wrap:anywhere}
+.code-snippet{background:#f1f1f6;border-left:4px solid #0078d4;padding:12px;font-family:Consolas,Menlo,monospace;font-size:12px;color:#232433;margin:15px 0;border-radius:0 4px 4px 0;overflow-x:auto;white-space:pre-wrap}
+
+/* Tablet */
+@media (max-width:900px){.email-list{width:280px}}
+
+/* Telemóvel: lista e leitor alternam */
+@media (max-width:700px){
+  header{padding:10px 14px}
+  header h1{font-size:16px}
+  .email-list{width:100%;border-right:none}
+  .email-viewer{display:none;width:100%;padding:14px}
+  .workspace.reading .email-list{display:none}
+  .workspace.reading .email-viewer{display:flex}
+  .back-btn{display:inline-block}
+  .auth-container{padding:24px 20px}
+  .mail-body{padding:20px 16px}
+  .mail-header,.mail-info{padding-left:16px;padding-right:16px}
+}
+@media (max-height:520px){body{align-items:flex-start}.auth-container{margin:8px auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{.email-list,header,.back-btn{display:none}.email-viewer{display:flex!important;overflow:visible}body{overflow:visible;height:auto}}
+</style>
+</head>
+<body>
+
+<div id="auth-panel" class="auth-container">
+  <div class="auth-header">
+    <h2 id="auth-title">Autenticação do Sistema</h2>
+    <p id="auth-desc">Aceda à consola privada MailFilipe</p>
+  </div>
+  <div class="auth-tabs">
+    <button type="button" id="tab-login" class="auth-tab-btn active" onclick="toggleAuthMode('login')">Aceder</button>
+    <button type="button" id="tab-register" class="auth-tab-btn" onclick="toggleAuthMode('register')">Criar Conta</button>
+  </div>
+  <div class="form-group">
+    <label for="auth-user">Utilizador / Email</label>
+    <input type="text" id="auth-user" class="form-input" placeholder="ex: filipepereira411" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="form-group">
+    <label for="auth-pass">Chave de Acesso</label>
+    <input type="password" id="auth-pass" class="form-input" placeholder="••••••••" autocomplete="current-password">
+  </div>
+  <button type="button" id="auth-main-btn" class="auth-btn" onclick="processarAutenticacao()">Entrar na Consola</button>
+  <div id="auth-msg" class="auth-message" role="alert"></div>
+</div>
+
+<div id="app-panel" class="app-container">
+  <header>
+    <h1>Caixa de Entrada Operacional</h1>
+    <div class="header-actions">
+      <div class="status-badge" id="inbox-counter">CAIXA: 3 MENSAGENS</div>
+      <button type="button" class="logout-btn" onclick="executarLogout()">Logout</button>
+    </div>
+  </header>
+  <div class="workspace" id="workspace">
+    <div class="email-list">
+      <div class="list-header">Mensagens Seguras</div>
+      <button type="button" id="msg1" class="email-item unread" onclick="lerEmail(1, this)">
+        <span class="time">17:02</span>
+        <div class="sender">🚨 Gestor de Cenas</div>
+        <div class="subject">[ALERTA] Varredura Concluída</div>
+        <div class="preview">O ecossistema local processou um novo diagnóstico...</div>
+      </button>
+      <button type="button" id="msg2" class="email-item unread" onclick="lerEmail(2, this)">
+        <span class="time">15:40</span>
+        <div class="sender">🔌 Periféricos IO</div>
+        <div class="subject">Aviso de Novo Hardware USB</div>
+        <div class="preview">Controlador detetado no barramento do sistema...</div>
+      </button>
+      <button type="button" id="msg3" class="email-item unread" onclick="lerEmail(3, this)">
+        <span class="time">12:15</span>
+        <div class="sender">🌐 Rastreador Móvel</div>
+        <div class="subject">Atualização de Localização GPS</div>
+        <div class="preview">Coordenadas geográficas capturadas no ficheiro tele_loca...</div>
+      </button>
+    </div>
+    <div class="email-viewer" id="viewer-area">
+      <button type="button" class="back-btn" onclick="voltarLista()">← Voltar à caixa</button>
+      <div id="placeholder" class="view-placeholder">📬 Selecione uma mensagem da caixa de correio para ler o relatório de raiz...</div>
+      <div id="mail-display" class="mail-wrapper">
+        <div class="mail-header"><h2 id="mail-subject">Assunto do E-mail</h2></div>
+        <div class="mail-info">
+          <strong>De:</strong> <span id="mail-sender">Remetente</span><br>
+          <strong>Para:</strong> administrador@filipe.local
+        </div>
+        <div class="mail-body" id="mail-text">Corpo do e-mail...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ES5 puro: funciona em browsers antigos e modernos */
+var modoAtual = 'login';
+
+/* Armazenamento com fallback em memória (modo privado, ficheiros locais, etc.) */
+var memoria = {};
+function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) { memoria[k] = v; } }
+function ler(k) { try { var v = localStorage.getItem(k); if (v !== null) { return v; } } catch (e) {} return memoria.hasOwnProperty(k) ? memoria[k] : null; }
+function apagar(k) { try { localStorage.removeItem(k); } catch (e) {} delete memoria[k]; }
+function el(id) { return document.getElementById(id); }
+
+if (ler("user_filipepereira411") === null) { guardar("user_filipepereira411", "admin123"); }
+
+var mensagens = {
+  1: {
+    sender: "🚨 Gestor de Cenas",
+    subject: "[ALERTA] Varredura Concluída",
+    body: "<p>O ecossistema local concluiu uma nova varredura de diagnóstico.</p>" +
+          "<div class=\"code-snippet\">Estado: CONCLUÍDO\nAmeaças: 0\nDispositivos verificados: 12</div>" +
+          "<p>Não é necessária nenhuma ação.</p>"
+  },
+  2: {
+    sender: "🔌 Periféricos IO",
+    subject: "Aviso de Novo Hardware USB",
+    body: "<p>Foi detetado um novo controlador no barramento do sistema.</p>" +
+          "<div class=\"code-snippet\">Dispositivo: Armazenamento USB\nPorta: USB-2\nEstado: Ligado</div>" +
+          "<p>Se não reconhece este dispositivo, desligue-o.</p>"
+  },
+  3: {
+    sender: "🌐 Rastreador Móvel",
+    subject: "Atualização de Localização GPS",
+    body: "<p>As coordenadas foram registadas no ficheiro de telemetria.</p>" +
+          "<div class=\"code-snippet\">Latitude: 41.5503\nLongitude: -8.4200\nPrecisão: 12 m</div>" +
+          "<p>Última atualização às 12:15.</p>"
+  }
+};
+
+function mostrarMsg(texto, ok) {
+  var m = el("auth-msg");
+  m.style.display = "block";
+  m.style.color = ok ? "#6ccb5f" : "#ff6b6b";
+  m.textContent = texto;
+}
+
+function toggleAuthMode(modo) {
+  modoAtual = modo;
+  var reg = (modo === 'register');
+  el("tab-login").className = "auth-tab-btn" + (reg ? "" : " active");
+  el("tab-register").className = "auth-tab-btn" + (reg ? " active" : "");
+  el("auth-main-btn").textContent = reg ? "Criar Conta" : "Entrar na Consola";
+  el("auth-pass").setAttribute("autocomplete", reg ? "new-password" : "current-password");
+  el("auth-msg").style.display = "none";
+}
+
+function processarAutenticacao() {
+  var user = el("auth-user").value.replace(/^\s+|\s+$/g, "").toLowerCase().replace(/^@/, "");
+  var pass = el("auth-pass").value;
+  if (!user || !pass) { mostrarMsg("Preencha o utilizador e a chave de acesso.", false); return; }
+  if (modoAtual === 'register') {
+    if (ler("user_" + user) !== null) { mostrarMsg("Esse utilizador já existe.", false); return; }
+    if (pass.length < 6) { mostrarMsg("A chave deve ter pelo menos 6 caracteres.", false); return; }
+    guardar("user_" + user, pass);
+    toggleAuthMode('login');
+    mostrarMsg("Conta criada. Já pode aceder.", true);
+    return;
+  }
+  if (ler("user_" + user) === pass) {
+    guardar("sessao", user);
+    abrirApp();
+  } else {
+    mostrarMsg("Utilizador ou chave incorretos.", false);
+  }
+}
+
+function abrirApp() {
+  el("auth-panel").style.display = "none";
+  el("app-panel").style.display = "flex";
+  el("auth-pass").value = "";
+  atualizarContador();
+}
+
+function executarLogout() {
+  apagar("sessao");
+  voltarLista();
+  el("app-panel").style.display = "none";
+  el("auth-panel").style.display = "block";
+  el("auth-msg").style.display = "none";
+}
+
+function atualizarContador() {
+  var n = 0, i;
+  for (i = 1; i <= 3; i++) {
+    if ((" " + el("msg" + i).className + " ").indexOf(" unread ") > -1) { n++; }
+  }
+  el("inbox-counter").textContent = n ? "CAIXA: " + n + (n === 1 ? " NÃO LIDA" : " NÃO LIDAS") : "CAIXA: TUDO LIDO";
+}
+
+function lerEmail(id, item) {
+  var i, m = mensagens[id];
+  for (i = 1; i <= 3; i++) { el("msg" + i).className = el("msg" + i).className.replace(/\s*active/g, ""); }
+  item.className = item.className.replace(/\s*unread/g, "") + " active";
+  el("mail-subject").textContent = m.subject;
+  el("mail-sender").textContent = m.sender;
+  el("mail-text").innerHTML = m.body;
+  el("placeholder").style.display = "none";
+  el("mail-display").style.display = "block";
+  el("workspace").className = "workspace reading";
+  el("viewer-area").scrollTop = 0;
+  atualizarContador();
+}
+
+function voltarLista() {
+  el("workspace").className = "workspace";
+}
+
+/* Enter submete o formulário; Esc volta à lista em ecrãs pequenos */
+document.addEventListener("keydown", function (e) {
+  var k = e.key || e.keyCode;
+  if ((k === "Enter" || k === 13) && el("auth-panel").style.display !== "none" &&
+      (e.target === el("auth-user") || e.target === el("auth-pass"))) { processarAutenticacao(); }
+  if (k === "Escape" || k === "Esc" || k === 27) { voltarLista(); }
+});
+
+/* Retoma a sessão */
+if (ler("sessao") !== null) { abrirApp(); }
+</script>
+</body>
+</html>
