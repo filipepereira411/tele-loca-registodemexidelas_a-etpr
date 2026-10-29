@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <meta charset="UTF-8">
+    <title>Painel de Disparo: Redefinição de Sistema</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0f0f14; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .box { max-width: 450px; width: 100%; background: #161620; border: 1px solid #3a1a1a; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h1 { font-size: 22px; color: #ff4d4d; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: #8e8e93; font-size: 14px; line-height: 1.6; margin-bottom: 25px; }
+        .btn-trigger { width: 100%; padding: 14px; background: #a80000; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-trigger:hover { background: #e00000; box-shadow: 0 0 15px rgba(224, 0, 0, 0.4); }
+        .status { margin-top: 15px; font-family: monospace; font-size: 12px; color: #00ff66; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>Comando de Redefinição Total</h1>
+        <p>Aviso: Ao acionar o gatilho de redefinição, um sinal de limpeza será enviado para o ficheiro de receção para purgar os logs locais, fechar processos redundantes e redefinir a estrutura visual.</p>
+        
+        <button class="btn-trigger" onclick="dispararSinalLimpeza()">EXECUTAR LIMPEZA IMEDIATA</button>
+        <div id="status-envio" class="status"></div>
+    </div>
+
+    <script>
+        function dispararSinalLimpeza() {
+            var status = document.getElementById("status-envio");
+            status.style.display = "block";
+            status.innerHTML = "A enviar pulso de redefinição para 'receive.html'...";
+            
+            try {
+                // Cria ou atualiza um token de sinalização local em disco
+                var fso = new ActiveXObject("Scripting.FileSystemObject");
+                var stream = fso.OpenTextFile("sinal_reset.tmp", 2, true);
+                stream.WriteLine("TRIGGER_RESET");
+                stream.Close();
+                
+                status.innerHTML = "[SUCESSO] Sinal gravado em disco. O recetor irá processar a limpeza.";
+            } catch (e) {
+                status.innerHTML = "[ERRO] Sem permissão de escrita para enviar o sinal: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
