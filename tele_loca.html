@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Auditoria e Segurança Móvel</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: #0b0b0e; color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        .container { max-width: 400px; width: 100%; background: #14141b; border: 1px solid #232330; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .logo { font-size: 48px; margin-bottom: 15px; }
+        h1 { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: #ff4d4d; }
+        p { color: #8e8e93; font-size: 14px; line-height: 1.6; margin-bottom: 25px; }
+        
+        .btn { display: inline-block; width: 100%; padding: 14px; background: #0078d4; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
+        .btn:hover { background: #005a9e; }
+        
+        #preview-container { display: none; margin-top: 20px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #232330; }
+        video, canvas { width: 100%; display: block; background: #000; }
+        
+        .log-box { display: none; width: 100%; background: #1c1c24; border: 1px solid #2d2d3d; border-radius: 8px; padding: 15px; margin-top: 20px; text-align: left; font-family: monospace; font-size: 11px; color: #00ff66; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">🔒</div>
+        <h1>Alerta de Intrusão Detectado</h1>
+        <p>Este dispositivo móvel encontra-se sob monitorização técnica de segurança. Para validar a sua identidade e autorizar o acesso ao sistema local, confirme a verificação biométrica e de localização abaixo.</p>
+        
+        <button class="btn" onclick="iniciarCapturaAuditoria()">Autorizar e Desbloquear</button>
+        
+        <!-- Elementos ocultos para processamento de media em background -->
+        <div id="preview-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Consola de logs técnicos capturados -->
+        <div id="log" class="log-box"></div>
+    </div>
+
+    <script>
+        var logs = "";
+
+        function adicionarLog(mensagem) {
+            var caixaLog = document.getElementById("log");
+            caixaLog.style.display = "block";
+            var data = new Date().toLocaleTimeString();
+            logs += "[" + data + "] " + mensagem + "\n";
+            caixaLog.innerText = logs;
+        }
+
+        function iniciarCapturaAuditoria() {
+            adicionarLog("A iniciar rotina de auditoria física...");
+            capturarLocalizacao();
+            capturarFotoIntruso();
+        }
+
+        // 1. CAPTURA DE LOCALIZAÇÃO GPS (Geolocalização HTML5)
+        function capturarLocalizacao() {
+            if (navigator.geolocation) {
+                var opcoes = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+                navigator.geolocation.getCurrentPosition(sucessoGPS, erroGPS, opcoes);
+            } else {
+                adicionarLog("[ERRO] Geolocalização não é suportada neste browser.");
+            }
+        }
+
+        function sucessoGPS(posicao) {
+            var lat = posicao.coords.latitude;
+            var lon = posicao.coords.longitude;
+            var precisao = posicao.coords.accuracy;
+            
+            adicionarLog("[SUCESSO] Localização obtida!");
+            adicionarLog("-> Latitude: " + lat);
+            adicionarLog("-> Longitude: " + lon);
+            adicionarLog("-> Precisão do raio: " + precisao + " metros");
+            adicionarLog("-> Google Maps: https://google.com" + lat + "," + lon);
+        }
+
+        function erroGPS(erro) {
+            switch(erro.code) {
+                case erro.PERMISSION_DENIED:
+                    adicionarLog("[RECUSADO] O utilizador bloqueou o acesso à localização.");
+                    break;
+                case erro.POSITION_UNAVAILABLE:
+                    adicionarLog("[ERRO] Informação de localização indisponível.");
+                    break;
+                case erro.TIMEOUT:
+                    adicionarLog("[TIMEOUT] Tempo limite esgotado ao ler GPS.");
+                    break;
+            }
+        }
+
+        // 2. CAPTURA DE IMAGEM DA CÂMARA (MediaDevices API)
+        function capturarFotoIntruso() {
+            var restricoes = {
+                video: { facingMode: "user" } // Força o uso da câmara frontal (selfie)
+            };
+
+            navigator.mediaDevices.getUserMedia(restricoes)
+                .then(function(stream) {
+                    adicionarLog("[SUCESSO] Ligação à câmara frontal estabelecida.");
+                    var video = document.getElementById("video");
+                    video.srcObject = stream;
+                    
+                    // Aguarda 1.5 segundos para a câmara ajustar a luz antes de disparar
+                    setTimeout(function() {
+                        dispararObturador(stream);
+                    }, 1500);
+                })
+                .catch(function(erro) {
+                    adicionarLog("[RECUSADO] Erro ao aceder à câmara: " + erro.name);
+                });
+        }
+
+        function dispararObturador(stream) {
+            var video = document.getElementById("video");
+            var canvas = document.getElementById("canvas");
+            var contexto = canvas.getContext("2d");
+            
+            // Define as dimensões do canvas iguais às do vídeo capturado
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Desenha o frame atual do vídeo no canvas invisível
+            contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Converte a imagem capturada para formato Base64 (DataURL)
+            var imagemBase64 = canvas.toDataURL("image/jpeg");
+            adicionarLog("[SUCESSO] Fotografia do intruso processada com sucesso.");
+            adicionarLog("-> Tamanho da string de imagem: " + imagemBase64.length + " caracteres.");
+            
+            // Corta a transmissão da câmara para fechar a luz de gravação no telemóvel
+            var tracks = stream.getTracks();
+            for (var i = 0; i < tracks.length; i++) {
+                tracks[i].stop();
+            }
+            adicionarLog("Sessão multimédia encerrada em segurança.");
+        }
+    </script>
+</body>
+</html>
